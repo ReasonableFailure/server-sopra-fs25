@@ -1,8 +1,10 @@
 package ch.uzh.ifi.hase.soprafs24.controller;
 
 import ch.uzh.ifi.hase.soprafs24.entity.User;
+import ch.uzh.ifi.hase.soprafs24.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.UserGetDTO;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.UserPostDTO;
+import ch.uzh.ifi.hase.soprafs24.rest.dto.UserPutDTO;
 import ch.uzh.ifi.hase.soprafs24.rest.mapper.DTOMapper;
 import ch.uzh.ifi.hase.soprafs24.service.UserService;
 import org.springframework.http.HttpStatus;
@@ -31,7 +33,7 @@ public class UserController {
   @ResponseStatus(HttpStatus.OK)
   @ResponseBody
   public List<UserGetDTO> getAllUsers() {
-    // fetch all users in the internal representation
+     // fetch all users in the internal representation
     List<User> users = userService.getUsers();
     List<UserGetDTO> userGetDTOs = new ArrayList<>();
 
@@ -41,6 +43,8 @@ public class UserController {
     }
     return userGetDTOs;
   }
+
+
 
   @PostMapping("/users")
   @ResponseStatus(HttpStatus.CREATED)
@@ -54,4 +58,26 @@ public class UserController {
     // convert internal representation of user back to API
     return DTOMapper.INSTANCE.convertEntityToUserGetDTO(createdUser);
   }
+
+    @GetMapping("/users/{userId}")
+    public UserGetDTO getUserProfile(@PathVariable Long id){
+      User object =
+      return DTOMapper.INSTANCE.convertEntityToUserGetDTO();
+    }
+
+    @PutMapping("/login")
+    public UserGetDTO handleLogin(@RequestBody UserPostDTO userPostDTO){
+      return new UserGetDTO();
+    }
+
+    @PutMapping("/users/{userId}/logout")
+    public UserGetDTO handleLogout(@PathVariable Long id){
+      return new UserGetDTO();
+    }
+
+    @PutMapping("/users/{userId}")
+    public UserGetDTO handleProfileEdit(@RequestBody UserPostDTO){
+      return new UserGetDTO();
+    }
+
 }

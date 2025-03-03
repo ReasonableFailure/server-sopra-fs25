@@ -59,21 +59,39 @@ public class UserService {
    * and throw an error otherwise.
    *
    * @param userToBeCreated
-   * @throws org.springframework.web.server.ResponseStatusException
+   * @throws ResponseStatusException
    * @see User
    */
   private void checkIfUserExists(User userToBeCreated) {
+    //User userByUsername = userRepository.findByPassword(userToBeCreated.getPassword());
     User userByUsername = userRepository.findByUsername(userToBeCreated.getUsername());
-    User userByName = userRepository.findByName(userToBeCreated.getName());
 
     String baseErrorMessage = "The %s provided %s not unique. Therefore, the user could not be created!";
-    if (userByUsername != null && userByName != null) {
+    if (userByUsername != null && userbyID != null) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-          String.format(baseErrorMessage, "username and the name", "are"));
+          String.format(baseErrorMessage, "username and the ID", "are"));
     } else if (userByUsername != null) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format(baseErrorMessage, "username", "is"));
-    } else if (userByName != null) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format(baseErrorMessage, "name", "is"));
+    } else if (userbyID != null) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format(baseErrorMessage, "ID", "is"));
     }
   }
+  public User findByID(Long ID){
+      List<User> userList = getUsers();
+      for(User comp : userList){
+          if(comp.getId() == ID){
+              return comp;
+          }
+      }
+      return null;
+  }
+    public User findByName(String name){
+        List<User> userList = getUsers();
+        for(User comp : userList){
+            if(comp.getUsername().equals(name)){
+                return comp;
+            }
+        }
+        return null;
+    }
 }

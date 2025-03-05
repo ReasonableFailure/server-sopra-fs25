@@ -1,5 +1,6 @@
 package ch.uzh.ifi.hase.soprafs24.service;
 
+import ch.qos.logback.core.status.StatusUtil;
 import ch.uzh.ifi.hase.soprafs24.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs24.entity.User;
 import ch.uzh.ifi.hase.soprafs24.repository.UserRepository;
@@ -41,7 +42,7 @@ public class UserService {
 
   public User createUser(User newUser) {
     newUser.setToken(UUID.randomUUID().toString());
-    newUser.setStatus(UserStatus.OFFLINE);
+    newUser.setStatus(UserStatus.ONLINE);
     checkIfUserExists(newUser);
     // saves the given entity but data is only persisted in the database once
     // flush() is called
@@ -63,19 +64,15 @@ public class UserService {
    * @see User
    */
   private void checkIfUserExists(User userToBeCreated) {
-    //User userByUsername = userRepository.findByPassword(userToBeCreated.getPassword());
-    User userByUsername = userRepository.findByUsername(userToBeCreated.getUsername());
+      //User userByUsername = userRepository.findByPassword(userToBeCreated.getPassword());
+      User userByUsername = userRepository.findByUsername(userToBeCreated.getUsername());
 
-    String baseErrorMessage = "The %s provided %s not unique. Therefore, the user could not be created!";
-    if (userByUsername != null && userbyID != null) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-          String.format(baseErrorMessage, "username and the ID", "are"));
-    } else if (userByUsername != null) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format(baseErrorMessage, "username", "is"));
-    } else if (userbyID != null) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format(baseErrorMessage, "ID", "is"));
-    }
+      String baseErrorMessage = "The %s provided %s not unique. Therefore, the user could not be created!";
+      if (userByUsername != null) {
+          throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format(baseErrorMessage, "username", "is"));
+      }
   }
+
   public User findByID(Long ID){
       List<User> userList = getUsers();
       for(User comp : userList){
@@ -93,5 +90,49 @@ public class UserService {
             }
         }
         return null;
+    }
+
+    public User logIn(User logInUser){
+       //TODO: Find user by Username in JPA repo. If not found Throw StatusResponseException. Check if password matches password on file. yes -> return User. no -> Throw ResponseStatusException
+        User found = findByName(logInUser.getUsername());
+        if(found == null){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User does not exist");
+        }
+        if(found.getPassword().equals(logInUser.getPassword())){
+            //set to online and assign auth token
+            found.setStatus(UserStatus.ONLINE);
+            found.setToken(UUID.randomUUID().toString());
+            return found;
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Wrong Password");
+        }
+    }
+
+    public User editUser(User editUser){
+      User toEdit = findByID(editUser.getId());
+      if(!entity.getToken().equals(toLogOut.getToken())){
+          throw new ResponseStatusException(HttpStatus.CONFLICT, "Unauthorised Access");
+      }
+
+
+    }
+
+//    public User viewUser(User toShow){
+//      return new User();
+//    }
+
+    public User logOutUser(User entity){
+      User toLogOut = findByID(entity.getId());
+      if(!entity.getToken().equals(toLogOut.getToken())){
+          throw new ResponseStatusException(HttpStatus.CONFLICT, "Unauthorised Access");
+      }
+      //user might be offline already
+      if(toLogOut.getStatus().equals(UserStatus.OFFLINE)){
+          throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User already logged out!");
+      }
+      final String invalidToken = "Invalid Token";
+      toLogOut.setStatus(UserStatus.OFFLINE);
+      toLogOut.setToken(invalidToken);
+      return toLogOut;
     }
 }

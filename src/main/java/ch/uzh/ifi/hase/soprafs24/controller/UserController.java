@@ -1,7 +1,7 @@
 package ch.uzh.ifi.hase.soprafs24.controller;
 
 import ch.uzh.ifi.hase.soprafs24.entity.User;
-import ch.uzh.ifi.hase.soprafs24.repository.UserRepository;
+import ch.uzh.ifi.hase.soprafs24.rest.dto.UserDTO;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.UserGetDTO;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.UserPostDTO;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.UserPutDTO;
@@ -46,7 +46,7 @@ public class UserController {
 
 
 
-  @PostMapping("/users")
+  @PostMapping("/register")
   @ResponseStatus(HttpStatus.CREATED)
   @ResponseBody
   public UserGetDTO createUser(@RequestBody UserPostDTO userPostDTO) {
@@ -60,24 +60,30 @@ public class UserController {
   }
 
     @GetMapping("/users/{userId}")
+    @ResponseStatus(HttpStatus.OK)
     public UserGetDTO getUserProfile(@PathVariable Long id){
-      User object =
-      return DTOMapper.INSTANCE.convertEntityToUserGetDTO();
+      User object = userService.findByID(id);
+      return DTOMapper.INSTANCE.convertEntityToUserGetDTO(object);
     }
 
-    @PutMapping("/login")
-    public UserGetDTO handleLogin(@RequestBody UserPostDTO userPostDTO){
-      return new UserGetDTO();
-    }
-
-    @PutMapping("/users/{userId}/logout")
-    public UserGetDTO handleLogout(@PathVariable Long id){
-      return new UserGetDTO();
+    @PostMapping("/login")
+    @ResponseStatus(HttpStatus.OK)
+    public UserDTO handleLogin(@RequestBody UserPostDTO userPostDTO){
+      User userCredentials = DTOMapper.INSTANCE.convertUserPostDTOtoEntity(userPostDTO);
+      User user = userService.logIn(userCredentials);
+      return DTOMapper.INSTANCE.convertEntityToUserDTO(user);
     }
 
     @PutMapping("/users/{userId}")
-    public UserGetDTO handleProfileEdit(@RequestBody UserPostDTO){
-      return new UserGetDTO();
+    public UserDTO handleLogout(@RequestBody UserPutDTO userPutDTO){
+      User entity = DTOMapper.INSTANCE.convertUserPutDTOtoEntity(userPutDTO);
+      User user = userService.logOutUser(entity);
+      return DTOMapper.INSTANCE.convertEntityToUserDTO(user);
+    }
+
+    @PutMapping("/users/{userId}")
+    public void handleProfileEdit(@RequestBody UserPutDTO userPutDTO){
+      return;
     }
 
 }

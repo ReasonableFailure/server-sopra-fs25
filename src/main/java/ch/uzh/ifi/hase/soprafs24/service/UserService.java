@@ -69,7 +69,7 @@ public class UserService {
 
       String baseErrorMessage = "The %s provided %s not unique. Therefore, the user could not be created!";
       if (userByUsername != null) {
-          throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format(baseErrorMessage, "username", "is"));
+          throw new ResponseStatusException(HttpStatus.CONFLICT, String.format(baseErrorMessage, "username", "is"));
       }
   }
 
@@ -82,21 +82,20 @@ public class UserService {
       }
       return null;
   }
-    public User findByName(String name){
+    public User findByName(String name) {
         List<User> userList = getUsers();
-        for(User comp : userList){
-            if(comp.getUsername().equals(name)){
+        for (User comp : userList) {
+            if (comp.getUsername().equals(name)) {
                 return comp;
             }
         }
         return null;
     }
-
     public User logIn(User logInUser){
        //TODO: Find user by Username in JPA repo. If not found Throw StatusResponseException. Check if password matches password on file. yes -> return User. no -> Throw ResponseStatusException
         User found = findByName(logInUser.getUsername());
         if(found == null){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User does not exist");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User does not exist");
         }
         if(found.getPassword().equals(logInUser.getPassword())){
             //set to online and assign auth token
@@ -104,17 +103,25 @@ public class UserService {
             found.setToken(UUID.randomUUID().toString());
             return found;
         } else {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Wrong Password");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"Wrong Password");
         }
     }
 
-    public User editUser(User editUser){
+    public void editUser(User editUser){
       User toEdit = findByID(editUser.getId());
-      if(!entity.getToken().equals(toLogOut.getToken())){
-          throw new ResponseStatusException(HttpStatus.CONFLICT, "Unauthorised Access");
+      if(toEdit == null){
+          throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("user with ID %d was not found",editUser.getId()));
       }
-
-
+      if(!editUser.getToken().equals(toEdit.getToken())){ //yes putDTO hast token
+          throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorised Access");
+      }
+      User preExisting = findByName(editUser.getUsername());
+      if(preExisting != null){
+          throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+      }
+      toEdit.setUsername(editUser.getUsername());
+      toEdit.setBirthday(editUser.getBirthday());
+      return;
     }
 
 //    public User viewUser(User toShow){
@@ -123,16 +130,16 @@ public class UserService {
 
     public User logOutUser(User entity){
       User toLogOut = findByID(entity.getId());
-      if(!entity.getToken().equals(toLogOut.getToken())){
-          throw new ResponseStatusException(HttpStatus.CONFLICT, "Unauthorised Access");
+      if(!entity.getToken().equals(toLogOut.getToken()) || toLogOut.getToken() == null){
+          throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorised Access");
       }
       //user might be offline already
       if(toLogOut.getStatus().equals(UserStatus.OFFLINE)){
-          throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User already logged out!");
+          throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User already logged out!");
       }
-      final String invalidToken = "Invalid Token";
+//      final String invalidToken = "Invalid Token";
       toLogOut.setStatus(UserStatus.OFFLINE);
-      toLogOut.setToken(invalidToken);
+      toLogOut.setToken(null);
       return toLogOut;
     }
 }

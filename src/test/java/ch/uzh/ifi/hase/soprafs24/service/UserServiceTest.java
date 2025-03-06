@@ -9,6 +9,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -60,7 +61,7 @@ public class UserServiceTest {
     userService.createUser(testUser);
 
     // when -> setup additional mocks for UserRepository
-    Mockito.when(userRepository.findByName(Mockito.any())).thenReturn(testUser);
+    Mockito.when(userRepository.findByUsername(Mockito.any())).thenReturn(testUser);
     Mockito.when(userRepository.findByUsername(Mockito.any())).thenReturn(null);
 
     // then -> attempt to create second user with same user -> check that an error
@@ -74,7 +75,7 @@ public class UserServiceTest {
     userService.createUser(testUser);
 
     // when -> setup additional mocks for UserRepository
-    Mockito.when(userRepository.findByName(Mockito.any())).thenReturn(testUser);
+    Mockito.when(userRepository.findByUsername(Mockito.any())).thenReturn(testUser);
     Mockito.when(userRepository.findByUsername(Mockito.any())).thenReturn(testUser);
 
     // then -> attempt to create second user with same user -> check that an error
@@ -82,4 +83,12 @@ public class UserServiceTest {
     assertThrows(ResponseStatusException.class, () -> userService.createUser(testUser));
   }
 
+  public void userToEditNotFound() throws Exception{
+      User user = new User();
+      user.setId(6L);
+      ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> userService.editUser(user));
+
+// check that an error is thrown
+      assertEquals(HttpStatus.NOT_FOUND, exception.getStatus());
+  }
 }

@@ -9,6 +9,7 @@ import ch.uzh.ifi.hase.soprafs24.rest.mapper.DTOMapper;
 import ch.uzh.ifi.hase.soprafs24.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +47,7 @@ public class UserController {
 
 
 
-  @PostMapping("/register")
+  @PostMapping("/users")
   @ResponseStatus(HttpStatus.CREATED)
   @ResponseBody
   public UserGetDTO createUser(@RequestBody UserPostDTO userPostDTO) {
@@ -61,20 +62,26 @@ public class UserController {
 
     @GetMapping("/users/{userId}")
     @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
     public UserGetDTO getUserProfile(@PathVariable Long id){
       User object = userService.findByID(id);
+      if(object == null){
+          throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User could not be found");
+      }
       return DTOMapper.INSTANCE.convertEntityToUserGetDTO(object);
     }
 
     @PostMapping("/login")
     @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
     public UserDTO handleLogin(@RequestBody UserPostDTO userPostDTO){
       User userCredentials = DTOMapper.INSTANCE.convertUserPostDTOtoEntity(userPostDTO);
       User user = userService.logIn(userCredentials);
       return DTOMapper.INSTANCE.convertEntityToUserDTO(user);
     }
 
-    @PutMapping("/users/{userId}")
+    @PutMapping("/logout")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public UserDTO handleLogout(@RequestBody UserPutDTO userPutDTO){
       User entity = DTOMapper.INSTANCE.convertUserPutDTOtoEntity(userPutDTO);
       User user = userService.logOutUser(entity);
@@ -82,8 +89,9 @@ public class UserController {
     }
 
     @PutMapping("/users/{userId}")
-    public void handleProfileEdit(@RequestBody UserPutDTO userPutDTO){
-      return;
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void handleProfileEdit(@RequestBody UserPutDTO userPutDTO) {
+        User editUser = DTOMapper.INSTANCE.convertUserPutDTOtoEntity(userPutDTO);
     }
 
 }

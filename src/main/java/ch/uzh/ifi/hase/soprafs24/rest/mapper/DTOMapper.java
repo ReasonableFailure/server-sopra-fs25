@@ -39,7 +39,6 @@ public interface DTOMapper {
     @Mapping(source = "creationDate", target = "creationDate",dateFormat = "dd.MM.yyyy")
     @Mapping(source = "birthday", target = "birthday", dateFormat = "dd.MM.yyyy")
     @Mapping(source = "status", target = "status")
-    @Mapping(source = "loggedIn", target = "loggedIn")
     UserDTO convertEntityToUserDTO(User user);
     //I need User->UserDTO, User->UserGetDTO, UserPostDTO -> User, UserPutDTO->User
 

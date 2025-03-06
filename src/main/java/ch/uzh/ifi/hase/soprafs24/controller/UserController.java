@@ -63,12 +63,12 @@ public class UserController {
     @GetMapping("/users/{userId}")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public UserGetDTO getUserProfile(@PathVariable Long id){
+    public UserDTO getUserProfile(@PathVariable Long id){
       User object = userService.findByID(id);
       if(object == null){
           throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User could not be found");
       }
-      return DTOMapper.INSTANCE.convertEntityToUserGetDTO(object);
+      return DTOMapper.INSTANCE.convertEntityToUserDTO(object);
     }
 
     @PostMapping("/login")
